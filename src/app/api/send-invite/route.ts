@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: "VoiceScreen <onboarding@resend.dev>",
+      from: "VoiceScreen <interviews@natseb.kitchen>",
       to: candidateEmail,
       subject: `You're invited to an interview — ${campaignTitle}`,
       html: `
