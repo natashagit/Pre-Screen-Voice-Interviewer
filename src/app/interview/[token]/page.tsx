@@ -67,6 +67,7 @@ export default async function InterviewPage({
       candidateId={candidate.id}
       candidateName={candidate.name}
       campaignTitle={candidate.campaigns.title}
+      questions={candidate.campaigns.questions}
     />
   );
 }

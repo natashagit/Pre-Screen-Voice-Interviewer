@@ -32,7 +32,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Upload, UserPlus, Send, Eye } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload, UserPlus, Send, Eye, Plus, X, Pencil, GripVertical, Check } from "lucide-react";
 import Link from "next/link";
 import Papa from "papaparse";
 
@@ -78,6 +79,11 @@ export function CampaignDetail({
   candidates: Candidate[];
 }) {
   const [candidates, setCandidates] = useState(initialCandidates);
+  const [questions, setQuestions] = useState<string[]>(campaign.questions);
+  const [editingQuestions, setEditingQuestions] = useState(false);
+  const [editQuestions, setEditQuestions] = useState<string[]>(campaign.questions);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [savingQuestions, setSavingQuestions] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [adding, setAdding] = useState(false);
@@ -85,6 +91,47 @@ export function CampaignDetail({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  function startEditingQuestions() {
+    setEditQuestions([...questions]);
+    setNewQuestion("");
+    setEditingQuestions(true);
+  }
+
+  function addEditQuestion() {
+    if (newQuestion.trim()) {
+      setEditQuestions([...editQuestions, newQuestion.trim()]);
+      setNewQuestion("");
+    }
+  }
+
+  function removeEditQuestion(index: number) {
+    setEditQuestions(editQuestions.filter((_, i) => i !== index));
+  }
+
+  function moveQuestion(index: number, direction: "up" | "down") {
+    const newArr = [...editQuestions];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newArr.length) return;
+    [newArr[index], newArr[targetIndex]] = [newArr[targetIndex], newArr[index]];
+    setEditQuestions(newArr);
+  }
+
+  async function saveQuestions() {
+    if (editQuestions.length === 0) return;
+    setSavingQuestions(true);
+
+    const { error } = await supabase
+      .from("campaigns")
+      .update({ questions: editQuestions })
+      .eq("id", campaign.id);
+
+    if (!error) {
+      setQuestions(editQuestions);
+      setEditingQuestions(false);
+    }
+    setSavingQuestions(false);
+  }
 
   async function addCandidate() {
     if (!name.trim() || !email.trim()) return;
@@ -238,6 +285,122 @@ export function CampaignDetail({
           </CardHeader>
         </Card>
       </div>
+
+      {/* Interview Questions */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Interview Questions</CardTitle>
+              <CardDescription>
+                Questions the AI interviewer will ask candidates.
+              </CardDescription>
+            </div>
+            {!editingQuestions && (
+              <Button variant="outline" size="sm" onClick={startEditingQuestions}>
+                <Pencil className="h-3 w-3 mr-1" />
+                Edit
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {editingQuestions ? (
+            <div className="space-y-3">
+              {editQuestions.map((q, i) => (
+                <div key={i} className="flex items-start gap-2 group">
+                  <div className="flex flex-col gap-0.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => moveQuestion(i, "up")}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-20"
+                      disabled={i === 0}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 3L2 7h8L6 3z" fill="currentColor"/></svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveQuestion(i, "down")}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-20"
+                      disabled={i === editQuestions.length - 1}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 9l4-4H2l4 4z" fill="currentColor"/></svg>
+                    </button>
+                  </div>
+                  <span className="text-sm text-muted-foreground mt-2 w-5 shrink-0">
+                    {i + 1}.
+                  </span>
+                  <Textarea
+                    value={q}
+                    onChange={(e) => {
+                      const updated = [...editQuestions];
+                      updated[i] = e.target.value;
+                      setEditQuestions(updated);
+                    }}
+                    rows={2}
+                    className="flex-1 text-sm resize-none"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeEditQuestion(i)}
+                    className="mt-1 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <div className="flex gap-2 pt-2">
+                <Input
+                  placeholder="Add a new question..."
+                  value={newQuestion}
+                  onChange={(e) => setNewQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addEditQuestion();
+                    }
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={addEditQuestion}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={saveQuestions} disabled={savingQuestions || editQuestions.length === 0} size="sm">
+                  <Check className="h-3 w-3 mr-1" />
+                  {savingQuestions ? "Saving..." : "Save Questions"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingQuestions(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {questions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No questions configured.</p>
+              ) : (
+                questions.map((q, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-sm text-muted-foreground w-5 shrink-0 pt-0.5">
+                      {i + 1}.
+                    </span>
+                    <p className="text-sm">{q}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Add Candidates */}
       <Card>
