@@ -36,10 +36,18 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from login
+  // Redirect logged-in users away from login (but not if resetting password)
   if (user && request.nextUrl.pathname === "/login") {
+    // If this is a recovery flow (type=recovery in hash), redirect to reset-password
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // Allow reset-password page for authenticated users (they just clicked a reset link)
+  if (request.nextUrl.pathname === "/reset-password" && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 

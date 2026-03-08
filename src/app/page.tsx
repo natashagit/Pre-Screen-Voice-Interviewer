@@ -233,18 +233,20 @@ export default function LandingPage() {
           </motion.div>
 
           <h1
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight mb-8"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight mb-8 pb-1"
             style={{ fontFamily: "var(--font-instrument-serif)" }}
           >
             Every great hire
             <br />
             starts with a{" "}
             <span
-              className="italic"
+              className="italic inline-block"
               style={{
                 background: `linear-gradient(135deg, ${C.gold}, ${C.goldLight})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
+                paddingRight: "0.15em",
+                paddingBottom: "0.05em",
               }}
             >
               Prelude

@@ -24,6 +24,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Upload,
   UserPlus,
   Send,
@@ -35,6 +45,7 @@ import {
   Check,
   ArrowLeft,
   Users,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import Papa from "papaparse";
@@ -244,6 +255,23 @@ export function CampaignDetail({
     setSending(null);
   }
 
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteCampaign() {
+    setDeleting(true);
+    // Delete candidates first (foreign key), then campaign
+    await supabase.from("candidates").delete().eq("campaign_id", campaign.id);
+    const { error } = await supabase
+      .from("campaigns")
+      .delete()
+      .eq("id", campaign.id);
+    if (!error) {
+      router.push("/dashboard");
+      router.refresh();
+    }
+    setDeleting(false);
+  }
+
   const completedCount = candidates.filter(
     (c) => c.status === "interview_completed"
   ).length;
@@ -274,12 +302,43 @@ export function CampaignDetail({
             </p>
           )}
         </div>
-        <Badge
-          variant={campaign.status === "active" ? "default" : "secondary"}
-          className="shrink-0 mt-1"
-        >
-          {campaign.status}
-        </Badge>
+        <div className="flex items-center gap-2 shrink-0 mt-1">
+          <Badge
+            variant={campaign.status === "active" ? "default" : "secondary"}
+          >
+            {campaign.status}
+          </Badge>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5">
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Delete</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete campaign</DialogTitle>
+                <DialogDescription>
+                  This will permanently delete <strong>{campaign.title}</strong> and
+                  all {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} associated
+                  with it. This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button
+                  variant="destructive"
+                  onClick={deleteCampaign}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete campaign"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats */}
