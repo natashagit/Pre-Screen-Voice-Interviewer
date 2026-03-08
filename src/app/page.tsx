@@ -177,17 +177,17 @@ export default function LandingPage() {
             </a>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/login"
-              className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-80"
+              className="hidden sm:inline-block text-sm px-4 py-2 rounded-lg transition-all hover:opacity-80"
               style={{ color: C.creamMuted }}
             >
               Log in
             </Link>
             <Link
               href="/login"
-              className="text-sm px-5 py-2.5 rounded-lg font-medium transition-all hover:brightness-110"
+              className="text-sm px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg font-medium transition-all hover:brightness-110 whitespace-nowrap"
               style={{ background: C.gold, color: C.bg }}
             >
               Get started

@@ -21,7 +21,7 @@ export default async function DashboardLayout({
     .single();
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="prelude-app min-h-screen bg-background">
       <DashboardNav
         userName={profile?.full_name ?? user.email ?? "User"}
         userEmail={user.email ?? ""}

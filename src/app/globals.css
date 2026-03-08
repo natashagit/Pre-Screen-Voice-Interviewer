@@ -179,3 +179,26 @@
   position: relative;
   z-index: 2;
 }
+
+/* ── Prelude App Theme (Dashboard / Auth) ── */
+
+.prelude-app {
+  --background: #FAF8F5;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary: #8B6E4E;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0ECE6;
+  --secondary-foreground: #5C5347;
+  --muted: #F3F0EB;
+  --muted-foreground: #84796C;
+  --accent: #F0ECE6;
+  --accent-foreground: #1A1A1A;
+  --destructive: #D94F4F;
+  --border: #E8E2D9;
+  --input: #E8E2D9;
+  --ring: #8B6E4E;
+}

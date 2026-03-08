@@ -21,19 +21,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, UserPlus, Send, Eye, Plus, X, Pencil, GripVertical, Check } from "lucide-react";
+import {
+  Upload,
+  UserPlus,
+  Send,
+  Eye,
+  Plus,
+  X,
+  Pencil,
+  GripVertical,
+  Check,
+  ArrowLeft,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import Papa from "papaparse";
 
@@ -62,7 +64,10 @@ interface Campaign {
   created_at: string;
 }
 
-const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+const STATUS_COLORS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   pending: "secondary",
   invited: "default",
   link_expired: "destructive",
@@ -81,7 +86,9 @@ export function CampaignDetail({
   const [candidates, setCandidates] = useState(initialCandidates);
   const [questions, setQuestions] = useState<string[]>(campaign.questions);
   const [editingQuestions, setEditingQuestions] = useState(false);
-  const [editQuestions, setEditQuestions] = useState<string[]>(campaign.questions);
+  const [editQuestions, setEditQuestions] = useState<string[]>(
+    campaign.questions
+  );
   const [newQuestion, setNewQuestion] = useState("");
   const [savingQuestions, setSavingQuestions] = useState(false);
   const [name, setName] = useState("");
@@ -140,7 +147,9 @@ export function CampaignDetail({
     const { data, error } = await supabase
       .from("candidates")
       .insert({ campaign_id: campaign.id, name, email })
-      .select("*, interviews(id, duration_seconds, completed_at), interview_links(id, token, expires_at, is_active, used_at)")
+      .select(
+        "*, interviews(id, duration_seconds, completed_at), interview_links(id, token, expires_at, is_active, used_at)"
+      )
       .single();
 
     if (!error && data) {
@@ -170,9 +179,7 @@ export function CampaignDetail({
 
         if (toInsert.length === 0) return;
 
-        const { error } = await supabase
-          .from("candidates")
-          .insert(toInsert);
+        const { error } = await supabase.from("candidates").insert(toInsert);
 
         if (!error) {
           router.refresh();
@@ -187,7 +194,6 @@ export function CampaignDetail({
   async function sendInvite(candidate: Candidate) {
     setSending(candidate.id);
 
-    // Create an interview link
     const { data: link, error: linkError } = await supabase
       .from("interview_links")
       .insert({ candidate_id: candidate.id })
@@ -199,7 +205,6 @@ export function CampaignDetail({
       return;
     }
 
-    // Send email via Resend
     const emailRes = await fetch("/api/send-invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -212,7 +217,6 @@ export function CampaignDetail({
     });
 
     if (!emailRes.ok) {
-      // Deactivate the link if email failed
       await supabase
         .from("interview_links")
         .update({ is_active: false })
@@ -221,7 +225,6 @@ export function CampaignDetail({
       return;
     }
 
-    // Update candidate status to invited
     await supabase
       .from("candidates")
       .update({ status: "invited" })
@@ -249,56 +252,74 @@ export function CampaignDetail({
   ).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{campaign.title}</h1>
+    <div className="space-y-8">
+      {/* Back link */}
+      <button
+        onClick={() => router.push("/dashboard")}
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back to campaigns
+      </button>
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-serif tracking-tight">
+            {campaign.title}
+          </h1>
           {campaign.description && (
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1.5 text-sm max-w-2xl">
               {campaign.description}
             </p>
           )}
         </div>
-        <Badge variant={campaign.status === "active" ? "default" : "secondary"}>
+        <Badge
+          variant={campaign.status === "active" ? "default" : "secondary"}
+          className="shrink-0 mt-1"
+        >
           {campaign.status}
         </Badge>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Candidates</CardDescription>
-            <CardTitle className="text-2xl">{candidates.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Invited</CardDescription>
-            <CardTitle className="text-2xl">{invitedCount}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Completed</CardDescription>
-            <CardTitle className="text-2xl">{completedCount}</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="flex gap-6 sm:gap-10 py-4 px-1">
+        {[
+          { label: "Candidates", value: candidates.length },
+          { label: "Invited", value: invitedCount },
+          { label: "Completed", value: completedCount },
+        ].map((stat, i) => (
+          <div key={stat.label} className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-serif tracking-tight text-foreground">
+              {stat.value}
+            </span>
+            <span className="text-xs sm:text-sm text-muted-foreground">
+              {stat.label}
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Interview Questions */}
-      <Card>
+      <Card className="border-border/60">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Interview Questions</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-serif tracking-tight">
+                Interview Questions
+              </CardTitle>
+              <CardDescription className="mt-1">
                 Questions the AI interviewer will ask candidates.
               </CardDescription>
             </div>
             {!editingQuestions && (
-              <Button variant="outline" size="sm" onClick={startEditingQuestions}>
-                <Pencil className="h-3 w-3 mr-1" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startEditingQuestions}
+                className="gap-1.5"
+              >
+                <Pencil className="h-3 w-3" />
                 Edit
               </Button>
             )}
@@ -313,22 +334,26 @@ export function CampaignDetail({
                     <button
                       type="button"
                       onClick={() => moveQuestion(i, "up")}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-20"
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
                       disabled={i === 0}
                     >
-                      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 3L2 7h8L6 3z" fill="currentColor"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12">
+                        <path d="M6 3L2 7h8L6 3z" fill="currentColor" />
+                      </svg>
                     </button>
                     <button
                       type="button"
                       onClick={() => moveQuestion(i, "down")}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-20"
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
                       disabled={i === editQuestions.length - 1}
                     >
-                      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 9l4-4H2l4 4z" fill="currentColor"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 12 12">
+                        <path d="M6 9l4-4H2l4 4z" fill="currentColor" />
+                      </svg>
                     </button>
                   </div>
-                  <span className="text-sm text-muted-foreground mt-2 w-5 shrink-0">
-                    {i + 1}.
+                  <span className="text-sm text-muted-foreground mt-2 w-5 shrink-0 font-mono text-xs">
+                    {String(i + 1).padStart(2, "0")}
                   </span>
                   <Textarea
                     value={q}
@@ -338,7 +363,7 @@ export function CampaignDetail({
                       setEditQuestions(updated);
                     }}
                     rows={2}
-                    className="flex-1 text-sm resize-none"
+                    className="flex-1 text-sm resize-none bg-transparent"
                   />
                   <Button
                     type="button"
@@ -363,15 +388,26 @@ export function CampaignDetail({
                       addEditQuestion();
                     }
                   }}
+                  className="bg-transparent"
                 />
-                <Button type="button" variant="outline" size="sm" onClick={addEditQuestion}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addEditQuestion}
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button onClick={saveQuestions} disabled={savingQuestions || editQuestions.length === 0} size="sm">
-                  <Check className="h-3 w-3 mr-1" />
+                <Button
+                  onClick={saveQuestions}
+                  disabled={savingQuestions || editQuestions.length === 0}
+                  size="sm"
+                  className="gap-1.5"
+                >
+                  <Check className="h-3 w-3" />
                   {savingQuestions ? "Saving..." : "Save Questions"}
                 </Button>
                 <Button
@@ -384,16 +420,18 @@ export function CampaignDetail({
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {questions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No questions configured.</p>
+                <p className="text-sm text-muted-foreground">
+                  No questions configured.
+                </p>
               ) : (
                 questions.map((q, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="text-sm text-muted-foreground w-5 shrink-0 pt-0.5">
-                      {i + 1}.
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xs font-mono text-muted-foreground/50 pt-0.5 w-5 shrink-0">
+                      {String(i + 1).padStart(2, "0")}
                     </span>
-                    <p className="text-sm">{q}</p>
+                    <p className="text-sm leading-relaxed">{q}</p>
                   </div>
                 ))
               )}
@@ -403,29 +441,33 @@ export function CampaignDetail({
       </Card>
 
       {/* Add Candidates */}
-      <Card>
+      <Card className="border-border/60">
         <CardHeader>
-          <CardTitle>Add Candidates</CardTitle>
-          <CardDescription>
+          <CardTitle className="font-serif tracking-tight">
+            Add Candidates
+          </CardTitle>
+          <CardDescription className="mt-1">
             Add candidates manually or upload a CSV file (columns: name, email).
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex gap-2 flex-1">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
               <Input
                 placeholder="Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="bg-transparent"
               />
               <Input
                 placeholder="Email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="bg-transparent"
               />
-              <Button onClick={addCandidate} disabled={adding}>
-                <UserPlus className="h-4 w-4 mr-2" />
+              <Button onClick={addCandidate} disabled={adding} className="gap-1.5 w-full sm:w-auto">
+                <UserPlus className="h-4 w-4" />
                 Add
               </Button>
             </div>
@@ -440,8 +482,9 @@ export function CampaignDetail({
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
+                className="gap-1.5 w-full sm:w-auto"
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4" />
                 Upload CSV
               </Button>
             </div>
@@ -450,39 +493,52 @@ export function CampaignDetail({
       </Card>
 
       {/* Candidate Table */}
-      <Card>
+      <Card className="border-border/60">
         <CardHeader>
-          <CardTitle>Candidates</CardTitle>
+          <CardTitle className="font-serif tracking-tight">
+            Candidates
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {candidates.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No candidates added yet.
-            </p>
+            <div className="text-center py-12">
+              <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No candidates added yet.
+              </p>
+            </div>
           ) : (
+            <div className="overflow-x-auto -mx-6 px-6">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead className="hidden sm:table-cell">Email</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Interview</TableHead>
+                  <TableHead className="hidden sm:table-cell">Interview</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {candidates.map((candidate) => (
-                  <TableRow key={candidate.id}>
+                  <TableRow key={candidate.id} className="border-border/40">
                     <TableCell className="font-medium">
-                      {candidate.name}
+                      <div>{candidate.name}</div>
+                      <div className="text-xs text-muted-foreground sm:hidden">{candidate.email}</div>
                     </TableCell>
-                    <TableCell>{candidate.email}</TableCell>
+                    <TableCell className="text-muted-foreground hidden sm:table-cell">
+                      {candidate.email}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_COLORS[candidate.status] ?? "secondary"}>
+                      <Badge
+                        variant={
+                          STATUS_COLORS[candidate.status] ?? "secondary"
+                        }
+                      >
                         {candidate.status.replace("_", " ")}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {candidate.interviews.length > 0 ? (
                         <span className="text-sm text-muted-foreground">
                           {Math.round(
@@ -491,7 +547,9 @@ export function CampaignDetail({
                           min
                         </span>
                       ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
+                        <span className="text-sm text-muted-foreground/40">
+                          —
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -502,8 +560,9 @@ export function CampaignDetail({
                             variant="outline"
                             onClick={() => sendInvite(candidate)}
                             disabled={sending === candidate.id}
+                            className="gap-1.5"
                           >
-                            <Send className="h-3 w-3 mr-1" />
+                            <Send className="h-3 w-3" />
                             {sending === candidate.id
                               ? "Sending..."
                               : "Send Invite"}
@@ -513,9 +572,9 @@ export function CampaignDetail({
                           <Link
                             href={`/dashboard/interviews/${candidate.interviews[0].id}`}
                           >
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-3 w-3 mr-1" />
-                              View
+                            <Button size="sm" variant="outline" className="gap-1.5">
+                              <Eye className="h-3 w-3" />
+                              Review
                             </Button>
                           </Link>
                         )}
@@ -525,6 +584,7 @@ export function CampaignDetail({
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

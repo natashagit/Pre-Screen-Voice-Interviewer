@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LogOut } from "lucide-react";
 
 export function DashboardNav({
   userName,
@@ -36,16 +37,21 @@ export function DashboardNav({
     .slice(0, 2);
 
   return (
-    <header className="border-b bg-background">
+    <header className="border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="text-xl font-bold">
-            VoiceScreen
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/15 border border-primary/25">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+            </div>
+            <span className="text-lg tracking-tight font-serif">
+              Prelude
+            </span>
           </Link>
           <nav className="flex items-center gap-4">
             <Link
               href="/dashboard"
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Campaigns
             </Link>
@@ -53,18 +59,26 @@ export function DashboardNav({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>{initials}</AvatarFallback>
+            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+              <Avatar className="h-9 w-9 border border-primary/20">
+                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <div className="px-2 py-1.5">
+          <DropdownMenuContent align="end" className="w-56">
+            <div className="px-3 py-2.5 border-b border-border">
               <p className="text-sm font-medium">{userName}</p>
-              <p className="text-xs text-muted-foreground">{userEmail}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {userEmail}
+              </p>
             </div>
-            <DropdownMenuItem onClick={handleSignOut}>
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="text-muted-foreground mt-1"
+            >
+              <LogOut className="h-3.5 w-3.5 mr-2" />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

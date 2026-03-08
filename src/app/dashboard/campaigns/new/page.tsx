@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -133,17 +133,14 @@ export default function NewCampaignPage() {
       <div className="mb-10">
         <button
           onClick={() => router.back()}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-1"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-1.5"
         >
-          <ArrowLeft className="h-3 w-3" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           Back to campaigns
         </button>
 
         <div className="flex items-center justify-between mb-2">
-          <h1
-            className="text-2xl font-semibold tracking-tight"
-            style={{ fontFeatureSettings: "'ss01' 1, 'ss02' 1" }}
-          >
+          <h1 className="text-2xl font-serif tracking-tight">
             Create Campaign
           </h1>
           <span className="text-xs text-muted-foreground font-mono tracking-wider uppercase">
@@ -169,18 +166,18 @@ export default function NewCampaignPage() {
                 }}
                 className={`flex items-center gap-2 flex-1 py-2.5 px-3 rounded-lg text-left transition-all duration-300 ${
                   isActive
-                    ? "bg-foreground text-background"
+                    ? "bg-primary text-primary-foreground"
                     : isComplete
-                    ? "bg-foreground/10 text-foreground cursor-pointer hover:bg-foreground/15"
+                    ? "bg-primary/15 text-primary cursor-pointer hover:bg-primary/20"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
                 <Icon
                   className={`h-3.5 w-3.5 shrink-0 ${
                     isActive
-                      ? "text-background"
+                      ? "text-primary-foreground"
                       : isComplete
-                      ? "text-foreground"
+                      ? "text-primary"
                       : "text-muted-foreground"
                   }`}
                 />
@@ -207,7 +204,9 @@ export default function NewCampaignPage() {
           {step === 0 && (
             <div className="max-w-lg">
               <div className="mb-8">
-                <h2 className="text-lg font-medium mb-1">Campaign Details</h2>
+                <h2 className="text-lg font-serif tracking-tight mb-1">
+                  Campaign Details
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   Give your campaign a name so you can identify it later.
                 </p>
@@ -226,7 +225,7 @@ export default function NewCampaignPage() {
                     placeholder="e.g. Frontend Developer — March 2026"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-12 text-base bg-transparent border-border/60 focus-visible:border-foreground/40 transition-colors"
+                    className="h-12 text-base bg-transparent border-border/60 focus-visible:border-primary/40 transition-colors"
                     autoFocus
                   />
                 </div>
@@ -247,7 +246,7 @@ export default function NewCampaignPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    className="text-base bg-transparent border-border/60 focus-visible:border-foreground/40 resize-none transition-colors"
+                    className="text-base bg-transparent border-border/60 focus-visible:border-primary/40 resize-none transition-colors"
                   />
                 </div>
               </div>
@@ -258,7 +257,7 @@ export default function NewCampaignPage() {
           {step === 1 && (
             <div className="max-w-xl">
               <div className="mb-8">
-                <h2 className="text-lg font-medium mb-1">
+                <h2 className="text-lg font-serif tracking-tight mb-1">
                   Interview Questions
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -280,7 +279,7 @@ export default function NewCampaignPage() {
                       dragIndex === i
                         ? "opacity-40 scale-[0.98]"
                         : dragOverIndex === i
-                        ? "border-foreground/30 bg-foreground/[0.03]"
+                        ? "border-primary/30 bg-primary/[0.03]"
                         : "border-transparent hover:border-border hover:bg-muted/50"
                     }`}
                   >
@@ -317,7 +316,7 @@ export default function NewCampaignPage() {
                         addQuestion();
                       }
                     }}
-                    className="h-11 pr-10 bg-transparent border-dashed border-border/60 focus-visible:border-solid focus-visible:border-foreground/40 transition-all"
+                    className="h-11 pr-10 bg-transparent border-dashed border-border/60 focus-visible:border-solid focus-visible:border-primary/40 transition-all"
                   />
                   {newQuestion.trim() && (
                     <button
@@ -344,7 +343,9 @@ export default function NewCampaignPage() {
           {step === 2 && (
             <div className="max-w-xl">
               <div className="mb-8">
-                <h2 className="text-lg font-medium mb-1">Review & Launch</h2>
+                <h2 className="text-lg font-serif tracking-tight mb-1">
+                  Review & Launch
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   Everything look good? You can edit these after creation too.
                 </p>
@@ -363,12 +364,14 @@ export default function NewCampaignPage() {
                           setDirection("backward");
                           setStep(0);
                         }}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-xs text-primary hover:text-primary/80 transition-colors"
                       >
                         Edit
                       </button>
                     </div>
-                    <h3 className="text-base font-semibold mt-1">{title}</h3>
+                    <h3 className="text-base font-serif tracking-tight mt-1">
+                      {title}
+                    </h3>
                     {description && (
                       <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                         {description}
@@ -389,7 +392,7 @@ export default function NewCampaignPage() {
                           setDirection("backward");
                           setStep(1);
                         }}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-xs text-primary hover:text-primary/80 transition-colors"
                       >
                         Edit
                       </button>
@@ -434,9 +437,7 @@ export default function NewCampaignPage() {
       </div>
 
       {/* Error */}
-      {error && (
-        <p className="text-sm text-destructive mt-4">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive mt-4">{error}</p>}
 
       {/* Footer navigation */}
       <div className="flex items-center justify-between pt-8 mt-8 border-t border-border/40">
@@ -446,9 +447,9 @@ export default function NewCampaignPage() {
               type="button"
               variant="ghost"
               onClick={prevStep}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground gap-1.5"
             >
-              <ArrowLeft className="h-4 w-4 mr-1.5" />
+              <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
           )}
@@ -471,10 +472,10 @@ export default function NewCampaignPage() {
                 (step === 0 && !canProceedFromStep0) ||
                 (step === 1 && !canProceedFromStep1)
               }
-              className="min-w-[120px]"
+              className="min-w-[120px] gap-1.5"
             >
               Continue
-              <ArrowRight className="h-4 w-4 ml-1.5" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
             <Button
@@ -484,7 +485,7 @@ export default function NewCampaignPage() {
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                  <span className="h-3.5 w-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                   Creating...
                 </span>
               ) : (

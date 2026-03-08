@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play, Pause, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Mic, User } from "lucide-react";
 
 interface TranscriptEntry {
   role: "ai" | "user";
@@ -57,47 +57,55 @@ export function InterviewReview({
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Link href={`/dashboard/campaigns/${campaignId}`}>
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-        </Link>
-      </div>
+    <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Back */}
+      <Link
+        href={`/dashboard/campaigns/${campaignId}`}
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back to campaign
+      </Link>
 
       {/* Candidate Info */}
       <div>
-        <h1 className="text-3xl font-bold">{candidateName}</h1>
-        <p className="text-muted-foreground">{candidateEmail}</p>
-        <p className="text-sm text-muted-foreground mt-1">{campaignTitle}</p>
+        <h1 className="text-3xl font-serif tracking-tight">
+          {candidateName}
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">{candidateEmail}</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">{campaignTitle}</p>
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 flex-wrap">
+      <div className="flex gap-3 flex-wrap">
         {interview.duration_seconds && (
-          <Badge variant="outline" className="text-sm py-1 px-3">
-            <Clock className="h-3 w-3 mr-1" />
+          <Badge variant="outline" className="text-sm py-1.5 px-3 gap-1.5">
+            <Clock className="h-3 w-3" />
             {formatDuration(interview.duration_seconds)}
           </Badge>
         )}
         {interview.started_at && (
-          <Badge variant="outline" className="text-sm py-1 px-3">
-            <Calendar className="h-3 w-3 mr-1" />
-            {new Date(interview.started_at).toLocaleDateString()}
+          <Badge variant="outline" className="text-sm py-1.5 px-3 gap-1.5">
+            <Calendar className="h-3 w-3" />
+            {new Date(interview.started_at).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
           </Badge>
         )}
-        <Badge variant="default" className="text-sm py-1 px-3">
+        <Badge variant="default" className="text-sm py-1.5 px-3">
           Completed
         </Badge>
       </div>
 
       {/* Audio Player */}
       {recordingUrl && (
-        <Card>
+        <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-lg">Recording</CardTitle>
+            <CardTitle className="text-lg font-serif tracking-tight">
+              Recording
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <audio
@@ -112,12 +120,17 @@ export function InterviewReview({
 
       {/* AI Summary */}
       {interview.ai_summary && (
-        <Card>
+        <Card className="border-border/60 border-primary/15">
           <CardHeader>
-            <CardTitle className="text-lg">AI Summary</CardTitle>
+            <CardTitle className="text-lg font-serif tracking-tight flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                <Mic className="h-3 w-3 text-primary" />
+              </div>
+              AI Summary
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
               {interview.ai_summary}
             </p>
           </CardContent>
@@ -125,43 +138,51 @@ export function InterviewReview({
       )}
 
       {/* Transcript */}
-      <Card>
+      <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-lg">Transcript</CardTitle>
+          <CardTitle className="text-lg font-serif tracking-tight">
+            Transcript
+          </CardTitle>
           <CardDescription>
             Full conversation between the AI interviewer and the candidate.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {!interview.transcript || interview.transcript.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No transcript available.
-            </p>
+            <div className="text-center py-12">
+              <p className="text-sm text-muted-foreground">
+                No transcript available.
+              </p>
+            </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {interview.transcript.map((entry, i) => (
                 <div key={i} className="flex gap-3">
                   <div className="shrink-0">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         entry.role === "ai"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
+                          ? "bg-primary/15 text-primary"
+                          : "bg-accent text-foreground"
                       }`}
                     >
-                      {entry.role === "ai" ? "AI" : candidateName.charAt(0)}
+                      {entry.role === "ai" ? (
+                        <Mic className="h-3.5 w-3.5" />
+                      ) : (
+                        <User className="h-3.5 w-3.5" />
+                      )}
                     </div>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-medium">
                         {entry.role === "ai" ? "Interviewer" : candidateName}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground/50 font-mono">
                         {formatTimestamp(entry.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {entry.content}
                     </p>
                   </div>
