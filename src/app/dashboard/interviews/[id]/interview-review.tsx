@@ -34,10 +34,9 @@ interface TranscriptEntry {
 }
 
 interface Scorecard {
-  overall_score: number;
   communication_score: number;
-  clarity_score: number;
-  articulation_score: number;
+  fit_score: number;
+  motivation_score: number;
   summary: string;
   strengths: string[];
   concerns: string[];
@@ -220,7 +219,7 @@ export function InterviewReview({
                         {scorecard.recommendation}
                       </span>
                       <span className="text-sm opacity-70">
-                        &middot; {scorecard.overall_score}/5 overall
+                        &middot; {scorecard.communication_score}/5 communication
                       </span>
                     </div>
                     <p className="text-sm mt-0.5 opacity-80">
@@ -256,20 +255,16 @@ export function InterviewReview({
               </CardHeader>
               <CardContent className="space-y-4">
                 <ScoreBar
-                  score={scorecard.overall_score}
-                  label="Overall English Proficiency"
-                />
-                <ScoreBar
                   score={scorecard.communication_score}
-                  label="Fluency & Flow"
+                  label="Communication Skills"
                 />
                 <ScoreBar
-                  score={scorecard.clarity_score}
-                  label="Pronunciation & Clarity"
+                  score={scorecard.fit_score}
+                  label="Role Fit"
                 />
                 <ScoreBar
-                  score={scorecard.articulation_score}
-                  label="Vocabulary & Grammar"
+                  score={scorecard.motivation_score}
+                  label="Motivation"
                 />
               </CardContent>
             </Card>
