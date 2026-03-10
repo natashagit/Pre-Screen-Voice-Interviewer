@@ -205,36 +205,41 @@ export function CampaignDetail({
   async function sendInvite(candidate: Candidate) {
     setSending(candidate.id);
 
-    const { data: link, error: linkError } = await supabase
-      .from("interview_links")
-      .insert({ candidate_id: candidate.id })
-      .select()
-      .single();
-
-    if (linkError || !link) {
-      setSending(null);
-      return;
-    }
-
-    const emailRes = await fetch("/api/send-invite", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        candidateName: candidate.name,
-        candidateEmail: candidate.email,
-        token: link.token,
-        campaignTitle: campaign.title,
-      }),
-    });
-
-    if (!emailRes.ok) {
-      await supabase
+    try {
+      const { data: link, error: linkError } = await supabase
         .from("interview_links")
-        .update({ is_active: false })
-        .eq("id", link.id);
-      setSending(null);
-      return;
-    }
+        .insert({ candidate_id: candidate.id })
+        .select()
+        .single();
+
+      if (linkError || !link) {
+        alert(`Failed to create interview link: ${linkError?.message || "Unknown error"}`);
+        setSending(null);
+        return;
+      }
+
+      const emailRes = await fetch("/api/send-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidateName: candidate.name,
+          candidateEmail: candidate.email,
+          token: link.token,
+          campaignTitle: campaign.title,
+        }),
+      });
+
+      const emailData = await emailRes.json().catch(() => ({}));
+
+      if (!emailRes.ok) {
+        alert(`Failed to send email: ${emailData.error || emailRes.statusText}`);
+        await supabase
+          .from("interview_links")
+          .update({ is_active: false })
+          .eq("id", link.id);
+        setSending(null);
+        return;
+      }
 
     await supabase
       .from("candidates")
@@ -253,6 +258,11 @@ export function CampaignDetail({
       )
     );
     setSending(null);
+    } catch (err) {
+      console.error("sendInvite error:", err);
+      alert(`Something went wrong: ${err instanceof Error ? err.message : "Unknown error"}`);
+      setSending(null);
+    }
   }
 
   const [deleting, setDeleting] = useState(false);

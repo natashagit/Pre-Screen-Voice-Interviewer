@@ -142,13 +142,29 @@ export function InterviewRoom({
       completed_at: new Date().toISOString(),
     };
 
+    let savedInterviewId = interviewId;
+
     if (interviewId) {
       await supabase
         .from("interviews")
         .update(interviewData)
         .eq("id", interviewId);
     } else {
-      await supabase.from("interviews").insert(interviewData);
+      const { data: inserted } = await supabase
+        .from("interviews")
+        .insert(interviewData)
+        .select("id")
+        .single();
+      if (inserted) savedInterviewId = inserted.id;
+    }
+
+    // Trigger AI scorecard generation in background
+    if (savedInterviewId && finalTranscript.length > 0) {
+      fetch("/api/analyze-interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interviewId: savedInterviewId }),
+      }).catch(console.error);
     }
   }, [linkId, candidateId, supabase, transcript, currentAiText, interviewId]);
 
@@ -304,7 +320,7 @@ export function InterviewRoom({
       await pc.setLocalDescription(offer);
 
       const sdpResponse = await fetch(
-        "https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17",
+        "https://api.openai.com/v1/realtime?model=gpt-realtime",
         {
           method: "POST",
           body: offer.sdp,
@@ -317,6 +333,18 @@ export function InterviewRoom({
 
       const answerSdp = await sdpResponse.text();
       await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+
+      // Wait for data channel to open, then trigger the AI to speak first
+      dc.onopen = () => {
+        dc.send(
+          JSON.stringify({
+            type: "response.create",
+            response: {
+              modalities: ["text", "audio"],
+            },
+          })
+        );
+      };
 
       startTimeRef.current = Date.now();
       setState("active");

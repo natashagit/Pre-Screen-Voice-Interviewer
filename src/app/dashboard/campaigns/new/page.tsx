@@ -20,11 +20,9 @@ import {
 } from "lucide-react";
 
 const DEFAULT_QUESTIONS = [
-  "Tell me a bit about yourself.",
-  "What's something interesting that happened to you recently?",
-  "How would you describe your communication style?",
-  "Tell me about a time you had to explain something complex to someone.",
-  "What are you looking for in your next role?",
+  "Tell me about yourself and what you're currently working on.",
+  "What caught your eye about this role?",
+  "What's your availability and timeline?",
 ];
 
 const STEPS = [

@@ -24,6 +24,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -47,6 +48,9 @@ export default function LoginPage() {
           },
         });
         if (signUpError) throw signUpError;
+        setLoading(false);
+        setConfirmEmail(true);
+        return;
       } else {
         const { error: signInError } =
           await supabase.auth.signInWithPassword({ email, password });
@@ -114,14 +118,18 @@ export default function LoginPage() {
         <Card className="border-border/60">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl font-serif tracking-tight">
-              {mode === "forgot"
+              {confirmEmail
+                ? "Verify your email"
+                : mode === "forgot"
                 ? "Reset your password"
                 : isSignUp
                 ? "Create your account"
                 : "Welcome back"}
             </CardTitle>
             <CardDescription>
-              {mode === "forgot"
+              {confirmEmail
+                ? "One last step before you can get started"
+                : mode === "forgot"
                 ? "Enter your email and we'll send you a reset link"
                 : isSignUp
                 ? "Start screening candidates with AI voice interviews"
@@ -129,7 +137,34 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {mode === "forgot" ? (
+            {confirmEmail ? (
+              <div className="text-center py-4 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-sm font-medium text-foreground">
+                    Check your email
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    We&apos;ve sent a verification link to <strong>{email}</strong>. Click the link to verify your account, then come back and sign in.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("login");
+                    setConfirmEmail(false);
+                    setError("");
+                  }}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            ) : mode === "forgot" ? (
               resetSent ? (
                 <div className="text-center py-4 space-y-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">

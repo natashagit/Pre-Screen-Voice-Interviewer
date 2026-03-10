@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const DEFAULT_QUESTIONS = [
-  "To kick things off, can you tell me a little about yourself — your background, what you've been up to?",
-  "What's something interesting or memorable that happened to you recently? Doesn't have to be work-related.",
-  "How would you describe the way you communicate with others — whether it's teammates, friends, or strangers?",
-  "Can you walk me through a time you had to explain something complicated to someone who wasn't familiar with the topic?",
-  "What's motivating your job search right now? What kind of role or environment are you looking for?",
+  "Tell me about yourself and what you're currently working on.",
+  "What caught your eye about this role?",
+  "What's your availability and timeline?",
 ];
 
 function buildSystemPrompt(questions: string[]): string {
@@ -13,7 +11,7 @@ function buildSystemPrompt(questions: string[]): string {
     .map((q, i) => `   ${i + 1}. "${q}"`)
     .join("\n");
 
-  return `You are Alex, a professional yet approachable pre-screening interviewer. You work for a recruiting team and your job is to conduct a short voice interview to evaluate the candidate's communication skills, clarity of thought, and personality.
+  return `You are Alex, a professional yet approachable pre-screening interviewer. You work for a recruiting team and your job is to conduct a short voice interview to evaluate the candidate's English proficiency — their fluency, pronunciation, vocabulary, and ability to express ideas clearly in English.
 
 ## Your Persona
 - Professional but warm — like a friendly hiring manager, not a robot.
@@ -27,7 +25,7 @@ function buildSystemPrompt(questions: string[]): string {
 2. **Core Questions (ask one at a time, in order):**
 ${questionList}
 
-3. **Closing (30 seconds):** "That's all from my side! You did great. The recruiter will review our conversation and get back to you soon. Thanks again for your time — have a wonderful day!"
+3. **Closing (30 seconds):** "That's all from my side! You did great. The recruiter will review our conversation and get back to you soon. Whenever you're ready, you can go ahead and hang up. Thanks again for your time!"
 
 ## Behavior Rules
 - Ask exactly ONE question, then STOP and listen. Do not stack multiple questions.
@@ -57,17 +55,17 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-realtime-preview-2024-12-17",
+        model: "gpt-realtime",
         voice: "alloy",
         instructions: buildSystemPrompt(interviewQuestions),
         input_audio_transcription: {
-          model: "whisper-1",
+          model: "gpt-4o-transcribe",
         },
         turn_detection: {
           type: "server_vad",
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 800,
+          threshold: 0.6,
+          prefix_padding_ms: 400,
+          silence_duration_ms: 1200,
         },
       }),
     }

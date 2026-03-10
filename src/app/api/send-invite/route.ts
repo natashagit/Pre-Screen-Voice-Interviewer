@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: "VoiceScreen <interviews@natseb.kitchen>",
+      from: "Prelude <interviews@prelude.team>",
       to: candidateEmail,
       subject: `You're invited to an interview — ${campaignTitle}`,
       html: `
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
           </p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
           <p style="font-size: 12px; color: #aaa;">
-            Sent via VoiceScreen — AI Pre-Screening Platform
+            Sent via Prelude — AI Pre-Screening Platform
           </p>
         </div>
       `,
