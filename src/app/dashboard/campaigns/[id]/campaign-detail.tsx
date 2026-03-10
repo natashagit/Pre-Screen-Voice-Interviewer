@@ -56,7 +56,7 @@ interface Candidate {
   email: string;
   status: string;
   created_at: string;
-  interviews: { id: string; duration_seconds: number; completed_at: string }[];
+  interviews: { id: string; duration_seconds: number; completed_at: string; scorecard: { overall_score: number } | null }[];
   interview_links: {
     id: string;
     token: string;
@@ -585,6 +585,7 @@ export function CampaignDetail({
                   <TableHead className="hidden sm:table-cell">Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="hidden sm:table-cell">Interview</TableHead>
+                  <TableHead className="hidden sm:table-cell">Score</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -614,6 +615,18 @@ export function CampaignDetail({
                             (candidate.interviews[0].duration_seconds || 0) / 60
                           )}{" "}
                           min
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground/40">
+                          —
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {candidate.interviews.length > 0 &&
+                      candidate.interviews[0].scorecard ? (
+                        <span className="text-sm font-medium">
+                          {candidate.interviews[0].scorecard.overall_score}/5
                         </span>
                       ) : (
                         <span className="text-sm text-muted-foreground/40">

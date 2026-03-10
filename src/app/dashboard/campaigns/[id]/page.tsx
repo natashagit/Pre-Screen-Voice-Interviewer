@@ -23,7 +23,7 @@ export default async function CampaignPage({
     .select(
       `
       *,
-      interviews(id, duration_seconds, completed_at),
+      interviews(id, duration_seconds, completed_at, scorecard),
       interview_links(id, token, expires_at, is_active, used_at)
     `
     )
