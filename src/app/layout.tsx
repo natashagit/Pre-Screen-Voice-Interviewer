@@ -20,7 +20,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Prelude — AI Voice Screening for Recruiters",
+  title: "Prelude: Pre-Screening Platform for Recruiters",
   description:
     "Every great hire starts with a Prelude. AI-powered voice interviews that screen candidates automatically, so you can focus on the ones who matter.",
 };
