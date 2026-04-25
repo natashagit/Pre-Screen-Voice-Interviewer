@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Phone, PhoneOff } from "lucide-react";
 
@@ -15,14 +14,12 @@ interface TranscriptEntry {
 
 export function InterviewRoom({
   token,
-  linkId,
   candidateId,
   candidateName,
   campaignTitle,
   questions,
 }: {
   token: string;
-  linkId: string;
   candidateId: string;
   candidateName: string;
   campaignTitle: string;
@@ -49,7 +46,6 @@ export function InterviewRoom({
   const animFrameRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
 
   // Timer
   useEffect(() => {
@@ -82,16 +78,6 @@ export function InterviewRoom({
 
     const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
 
-    await supabase
-      .from("interview_links")
-      .update({ used_at: new Date().toISOString(), is_active: false })
-      .eq("id", linkId);
-
-    await supabase
-      .from("candidates")
-      .update({ status: "interview_completed" })
-      .eq("id", candidateId);
-
     const recordingBlob = await new Promise<Blob>((resolve) => {
       const recorder = mediaRecorderRef.current;
       if (!recorder || recorder.state !== "recording") {
@@ -104,24 +90,6 @@ export function InterviewRoom({
       recorder.stop();
     });
 
-    const fileName = `${candidateId}/${Date.now()}.webm`;
-    let recordingPath: string | null = null;
-
-    if (recordingBlob.size > 0) {
-      const { error: uploadError } = await supabase.storage
-        .from("recordings")
-        .upload(fileName, recordingBlob, {
-          contentType: "audio/webm",
-          upsert: false,
-        });
-
-      if (!uploadError) {
-        recordingPath = fileName;
-      } else {
-        console.error("Upload error:", uploadError);
-      }
-    }
-
     const finalTranscript = [...transcript];
     const remainingAiText = (pendingAiTextRef.current + " " + currentAiText).trim();
     if (remainingAiText) {
@@ -132,62 +100,61 @@ export function InterviewRoom({
       });
     }
 
-    const interviewData: Record<string, unknown> = {
-      candidate_id: candidateId,
-      link_id: linkId,
-      recording_path: recordingPath,
-      transcript: finalTranscript,
-      duration_seconds: duration,
-      started_at: new Date(startTimeRef.current).toISOString(),
-      completed_at: new Date().toISOString(),
-    };
-
-    let savedInterviewId = interviewId;
-
-    if (interviewId) {
-      await supabase
-        .from("interviews")
-        .update(interviewData)
-        .eq("id", interviewId);
-    } else {
-      const { data: inserted } = await supabase
-        .from("interviews")
-        .insert(interviewData)
-        .select("id")
-        .single();
-      if (inserted) savedInterviewId = inserted.id;
+    if (!interviewId) {
+      console.error("No interviewId — cannot complete interview");
+      return;
     }
 
-    // Trigger AI scorecard generation in background
-    if (savedInterviewId && finalTranscript.length > 0) {
+    const formData = new FormData();
+    formData.append("token", token);
+    formData.append("interviewId", interviewId);
+    formData.append("transcript", JSON.stringify(finalTranscript));
+    formData.append("duration", String(duration));
+    if (recordingBlob.size > 0) {
+      formData.append("recording", recordingBlob, "recording.webm");
+    }
+
+    try {
+      const res = await fetch("/api/interview/complete", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error("Complete interview failed:", res.status, body);
+        return;
+      }
+    } catch (err) {
+      console.error("Complete interview request failed:", err);
+      return;
+    }
+
+    if (finalTranscript.length > 0) {
       fetch("/api/analyze-interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interviewId: savedInterviewId }),
+        body: JSON.stringify({ interviewId }),
       }).catch(console.error);
     }
-  }, [linkId, candidateId, supabase, transcript, currentAiText, interviewId]);
+  }, [token, transcript, currentAiText, interviewId]);
 
   async function startInterview() {
     setState("connecting");
 
     try {
-      const { data: interview } = await supabase
-        .from("interviews")
-        .insert({
-          candidate_id: candidateId,
-          link_id: linkId,
-          started_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
-
-      if (interview) setInterviewId(interview.id);
-
-      await supabase
-        .from("candidates")
-        .update({ status: "interview_started" })
-        .eq("id", candidateId);
+      const startRes = await fetch("/api/interview/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (!startRes.ok) {
+        throw new Error(`Failed to start interview: ${startRes.status}`);
+      }
+      const { interviewId: newInterviewId } = await startRes.json();
+      if (!newInterviewId) {
+        throw new Error("No interviewId returned");
+      }
+      setInterviewId(newInterviewId);
 
       const sessionRes = await fetch("/api/interview-session", {
         method: "POST",

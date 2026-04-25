@@ -63,7 +63,6 @@ export default async function InterviewPage({
   return (
     <InterviewRoom
       token={token}
-      linkId={link.id}
       candidateId={candidate.id}
       candidateName={candidate.name}
       campaignTitle={candidate.campaigns.title}

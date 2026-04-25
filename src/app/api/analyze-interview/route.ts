@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 const SCORECARD_PROMPT = `You are an expert recruiter reviewing an AI-conducted screening interview. Analyze the transcript below and produce a structured scorecard.
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Fetch interview with candidate and campaign info
     const { data: interview, error: fetchError } = await supabase
